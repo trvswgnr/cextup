@@ -1,0 +1,15 @@
+{
+    "name": "cextup",
+    "type": "module",
+    "scripts": {
+        "start": "bun ./scripts/start.ts"
+    },
+    "devDependencies": {
+        "@types/bun": "^1.0.1",
+        "@types/chrome": "^0.0.256",
+        "@types/web": "^0.0.135"
+    },
+    "peerDependencies": {
+        "typescript": "^5.0.0"
+    }
+}
