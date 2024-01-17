@@ -1,7 +1,10 @@
+import pkg from "../package.json";
+
 const manifest: ManifestV3 = {
     manifest_version: 3,
     name: "A Pretty Cool Chrome Extension",
-    version: "1.0",
+    version: semverToChrome(pkg.version),
+    version_name: pkg.version,
     background: {
         service_worker: "background.js",
     },
@@ -22,3 +25,11 @@ const manifest: ManifestV3 = {
 };
 
 export default manifest;
+
+/** converts a npm version to a chrome version */
+function semverToChrome(version: string) {
+    const [ver, ...rest] = version.split("-");
+    const pre = rest.reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const [major, minor, patch] = ver.split(".");
+    return `${major}.${minor}.${patch}.${pre}`;
+}
