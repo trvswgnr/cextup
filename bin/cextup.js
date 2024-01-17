@@ -71,11 +71,13 @@ function scaffold(name, handle, usePrettier, useVercel, useServer) {
 
     copyDir("types", handle);
     copyDir("scripts", handle);
+
     if (usePrettier) {
         copyFile(".prettierrc", handle);
     }
 
     if (useServer) {
+        copyFile(".env-example", handle);
         copyDir("api", handle);
     }
 
@@ -86,7 +88,6 @@ function scaffold(name, handle, usePrettier, useVercel, useServer) {
     copyFile("LICENSE", handle);
     copyFile("index.html", handle);
     copyFile(".gitignore", handle);
-    copyFile(".env-example", handle);
     copyFile("tsconfig.json", handle);
 
     createReadme(name, handle);
