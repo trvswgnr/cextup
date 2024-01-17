@@ -32,7 +32,6 @@ const manifestBytes = await Bun.write(
     path.join(projectDir, outdir, "manifest.json"),
     JSON.stringify(manifestFile, null, 4),
 );
-console.log(`manifest.json    ${bytesToKilobytes(manifestBytes)}`);
 
 const { stdout, stderr } = Bun.spawn(
     [
