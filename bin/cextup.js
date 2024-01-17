@@ -12,12 +12,18 @@ const rl = readline.createInterface({
     output: process.stdout,
 });
 
+const useDefaults = process.argv.includes("--yes") || process.argv.includes("-y");
+
 main();
 
 async function main() {
     /** @type {string|undefined} */
     let handle;
     try {
+        if (useDefaults) {
+            scaffold("My Extension", "my-extension", true, true, true);
+            return;
+        }
         const name = await askInputQuestion("What is the name of your project?", "My Extension");
         handle = handleize(name);
         const usePrettier = await askYesNoQuestion("Do you want to use prettier?", true);
