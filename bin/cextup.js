@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // @ts-check
 
-import fs from "fs";
+import fs from "fs/promises";
 import path from "path";
 import readline from "readline";
 
@@ -21,7 +21,7 @@ async function main() {
     let handle;
     try {
         if (useDefaults) {
-            scaffold("My Extension", "my-extension", true, true, true);
+            await scaffold("My Extension", "my-extension", true, true, true);
             return;
         }
         const name = await askInputQuestion("What is the name of your project?", "My Extension");
@@ -35,7 +35,7 @@ async function main() {
         if (!useVercel) {
             useServer = await askYesNoQuestion("Do you want to use a local server?", true);
         }
-        scaffold(name, handle, usePrettier, useVercel, useServer);
+        await scaffold(name, handle, usePrettier, useVercel, useServer);
 
         rl.close();
 
@@ -44,10 +44,8 @@ async function main() {
     } catch (err) {
         const error = err instanceof Error ? err : new Error("Unknown error");
         console.error(error.message);
-        // remove the new directory if it was created
-        if (handle && fs.existsSync(handle)) {
-            console.log(`Removing ${handle}`);
-            fs.rmSync(handle, { recursive: true, force: true });
+        if (handle) {
+            await fs.rm(handle, { recursive: true, force: true }).catch(() => {});
         }
         process.exit(1);
     }
@@ -60,45 +58,38 @@ async function main() {
  * @param {boolean} useVercel
  * @param {boolean} useServer
  */
-function scaffold(name, handle, usePrettier, useVercel, useServer) {
-    // create the extension directory, if it doesn't exist
-    if (fs.existsSync(handle)) {
+async function scaffold(name, handle, usePrettier, useVercel, useServer) {
+    /** @type {Promise<void>[]} */
+    const promises = [];
+    await fs.mkdir(handle).catch(() => {
         console.error(`Error: Directory ${handle} already exists`);
         process.exit(1);
-    }
-
-    fs.mkdirSync(handle);
-
-    copyDir("src", handle, (err, files) => {
-        const newManifestPath = path.join(handle, "src", "manifest.ts");
-        const manifest = fs.readFileSync(newManifestPath, "utf8");
-        fs.writeFileSync(newManifestPath, manifest.replace("{{ name }}", name), "utf8");
     });
+    await copyDir("src", handle);
 
-    copyDir("types", handle);
-    copyDir("scripts", handle);
-
+    const newManifestPath = path.join(handle, "src", "manifest.ts");
+    const manifest = await fs.readFile(newManifestPath, "utf8");
+    promises.push(fs.writeFile(newManifestPath, manifest.replace("{{ name }}", name), "utf8"));
+    promises.push(copyDir("types", handle));
+    promises.push(copyDir("scripts", handle));
     if (usePrettier) {
-        copyFile(".prettierrc", handle);
+        promises.push(copyFile(".prettierrc", handle));
     }
-
     if (useServer) {
-        copyFile(".env-example", handle);
-        copyDir("api", handle);
+        promises.push(copyFile(".env-example", handle));
+        promises.push(copyDir("api", handle));
     }
-
     if (useVercel) {
-        copyFile("vercel.json", handle);
+        promises.push(copyFile("vercel.json", handle));
     }
+    promises.push(copyFile("LICENSE", handle));
+    promises.push(copyFile("index.html", handle));
+    promises.push(copyFile(".gitignore", handle));
+    promises.push(copyFile("tsconfig.json", handle));
+    promises.push(createReadme(name, handle));
+    promises.push(createPackageJson(handle, useServer));
 
-    copyFile("LICENSE", handle);
-    copyFile("index.html", handle);
-    copyFile(".gitignore", handle);
-    copyFile("tsconfig.json", handle);
-
-    createReadme(name, handle);
-
-    createPackageJson(handle, useServer);
+    await Promise.all(promises);
 }
 
 function getScriptPath() {
@@ -116,49 +107,42 @@ function getScriptPath() {
 /**
  * @param {string} srcDirName
  * @param {string} name
- * @param {(err: NodeJS.ErrnoException|null, files: string[]) => void} [cb]
  */
-function copyDir(srcDirName, name, cb) {
+async function copyDir(srcDirName, name) {
     const src = path.join(cextupRoot, srcDirName);
     const dest = path.join(name, srcDirName);
-    fs.readdir(src, (err, files) => {
-        if (err) {
-            cb?.(err, []);
-            return;
+    await fs.mkdir(dest, { recursive: true });
+    const entries = await fs.readdir(src, { withFileTypes: true });
+    for (const file of entries) {
+        const srcPath = path.join(src, file.name);
+        const destPath = path.join(dest, file.name);
+        if (file.isDirectory()) {
+            await copyDir(srcPath, destPath);
+        } else {
+            await fs.copyFile(srcPath, destPath);
         }
-        files.forEach((file) => {
-            const f = path.join(dest, file);
-            const d = path.dirname(f);
-            if (!fs.existsSync(d)) {
-                fs.mkdirSync(d, { recursive: true });
-            }
-            fs.copyFileSync(path.join(src, file), f);
-        });
-
-        cb?.(null, files);
-    });
+    }
 }
 
 /**
  * @param {string} _src
  * @param {string} name
  */
-function copyFile(_src, name) {
+async function copyFile(_src, name) {
     const src = path.join(cextupRoot, _src);
     const dest = path.join(name, _src);
     const destDir = path.dirname(dest);
-    if (!fs.existsSync(destDir)) {
-        fs.mkdirSync(destDir, { recursive: true });
-    }
-    fs.copyFileSync(src, dest);
+    await fs.mkdir(destDir, { recursive: true });
+    await fs.copyFile(src, dest);
 }
 
 /**
  * @param {string} name
  * @param {boolean} useServer
  */
-function createPackageJson(name, useServer) {
-    const packageJson = JSON.parse(fs.readFileSync(path.join(cextupRoot, "package.json"), "utf8"));
+async function createPackageJson(name, useServer) {
+    const contents = await fs.readFile(path.join(cextupRoot, "package.json"), "utf8");
+    const packageJson = JSON.parse(contents);
     packageJson.name = name;
     packageJson.description = undefined;
     packageJson.version = "0.0.1";
@@ -171,14 +155,18 @@ function createPackageJson(name, useServer) {
     if (!useServer) {
         packageJson.scripts.start = "bun ./scripts/start.ts --no-server";
     }
-    fs.writeFileSync(path.join(name, "package.json"), JSON.stringify(packageJson, null, 4), "utf8");
+    await fs.writeFile(
+        path.join(name, "package.json"),
+        JSON.stringify(packageJson, null, 4),
+        "utf8",
+    );
 }
 
 /**
  * @param {string} name
  * @param {string} handle
  */
-function createReadme(name, handle) {
+async function createReadme(name, handle) {
     const readme = `# ${name}
 
 This project was generated with [cextup](https://github.com/trvswgnr/cextup).
@@ -211,7 +199,7 @@ Note that Developer Mode must be enabled in order to load unpacked extensions.
 You will need to reload the extension after making changes to the code by clicking the "Update" button in \`chrome://extensions\`.
 `;
 
-    fs.writeFileSync(path.join(handle, "README.md"), readme, "utf8");
+    await fs.writeFile(path.join(handle, "README.md"), readme, "utf8");
 }
 
 /**
@@ -232,9 +220,9 @@ function askInputQuestion(query, defaultValue) {
  */
 function askYesNoQuestion(query, defaultValue) {
     return new Promise((resolve) => {
-        const _defaultValue = defaultValue === undefined ? "y/n" : defaultValue ? "Y/n" : "y/N";
+        const _defaultValue = defaultValue === undefined ? "y/n" : defaultValue ? "y" : "n";
         rl.question(`${query} (${_defaultValue}) `, (ans) => {
-            resolve(ans === "" ? defaultValue : ans.toLowerCase() === "y");
+            resolve(ans === "" ? defaultValue : ans[0]?.toLowerCase() === "y");
         });
     });
 }
