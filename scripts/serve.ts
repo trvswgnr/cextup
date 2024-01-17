@@ -43,9 +43,6 @@ async function fileRouter(request: Request) {
         const headers = withCors(
             Object.assign(Object.fromEntries(res.headers.entries()), matchingHeaders),
         );
-        for (const [key, value] of Object.entries(headers)) {
-            console.log(`${key}: ${value}`);
-        }
         return new Response(res.body, { status: res.status, headers });
     }
     const handlerResponse = await handler(request);
