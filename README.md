@@ -1,57 +1,78 @@
-# cextup
+# CExtUp
 
-cextup is a tool to make developing chrome extensions less painful.
+Chrome extension development can be painful. CExtUp is a CLI tool that aims to alleviate some of that pain, without doing too much. It provides a solid foundation for your projects, including a build system, a development server, and a basic project structure.
 
-it uses `bun` to build the extension and watches for changes to rebuild.
+CExtUp uses [Bun](https://bun.sh/)—a modern JavaScript runtime, bundler, and package manager—instead of Node.js for its build system and server. It is also pre-configured to use [Vercel Serverless Edge Functions](https://vercel.com/docs/functions/edge-functions), but should work with other serverless platforms as well.
 
-files in the `src` folder are built into the `extension` folder. the `extension` folder is what you load into chrome.
+## Features
 
-## features
+-   **Project Setup**: CExtUp automatically generates a new Chrome extension project with a basic structure and all the necessary files.
+-   **Bun Integration**: We use Bun for its build system and server, providing an incredibly fast and efficient development experience.
+-   **TypeScript Support**: Out-of-the-box support for TS, giving you more confidence in your code.
+-   **Edge Functions**: CExtUp is set up to use Vercel Serverless Edge Functions, providing a scalable and efficient way to handle server-side logic. This is optional and can be removed if not needed. These live in the `api/` directory.
 
-- builds the extension into a folder that can be loaded into chrome
-- watches for changes and rebuilds
-- no build tool configuration required
-- zero dependencies
-- creates a live server for development
-- supports typescript out of the box
-- preconfigured to use vercel serverless edge functions
+## Getting Started
 
-## usage
+To use CExtUp, run the following command:
 
-make sure you have `bun` installed globally.
+```sh
+bunx cextup
+# or
+npx cextup
+```
+
+This will prompt you for the name of your new extension and create a new directory with that name, containing all the necessary files for your new Chrome extension.
+
+## Project Structure
+
+The generated project includes the following files and directories:
+
+-   `src/`: This directory contains the source files for your Chrome extension, including background scripts, content scripts, and the manifest file.
+-   `types/`: This directory contains TypeScript type definitions.
+-   `api/`: This directory contains the serverless functions for your extension. This is optional and can be removed if you're not planning to use Vercel Serverless Edge Functions.
+-   `scripts/`: This directory contains scripts for building and serving your extension during development.
+-   `package.json`: This file contains the metadata for your project, including dependencies and scripts.
+-   `tsconfig.json`: This file configures the TypeScript compiler for your project.
+
+## Development
+
+First, make sure you have [Bun](https://bun.sh/) installed:
 
 ```sh
 curl -fsSL https://bun.sh/install | bash
 ```
 
-for now you'll need to clone the repo:
-    
-```sh
-git clone https://github.com/trvswgnr/cextup.git
-```
-
-then install the dependencies:
+To start developing your Chrome extension, navigate to the project directory and install the necessary dependencies:
 
 ```sh
+cd your-extension-name
 bun i
 ```
 
-now, you can start developing your extension:
+Then, start the development server and watch for changes:
 
 ```sh
 bun start
 ```
 
-## vercel serverless edge functions
+If you want to build the extension without starting the development server, you can run:
 
-cextup is preconfigured to use vercel serverless edge functions. you can read more about them [here](https://vercel.com/docs/functions/edge-functions).
+```sh
+bun ./scripts/build.ts
+```
 
-when running the development server, you can access your functions at `http://localhost:3000/api/your-function-name`.
+Note that while it is possible to use `vercel dev` to run the development server, it is much slower than using Bun, so we recommend using `bun start` instead.
 
-## license
+## Loading the Extension in Chrome
 
-the code in this repo is licensed under the MIT license. see [LICENSE](LICENSE) for more info.
+To load your extension in Chrome, navigate to `chrome://extensions` in your browser and click `Load unpacked`. Select the `dist` directory in your project. Note that you must have Developer Mode enabled in order to load unpacked extensions.
 
-## contributing
+After making changes to your code, you will need to reload the extension by clicking the `Update` button in `chrome://extensions`.
 
-contributions are welcome! please open an issue or submit a pull request.
+## Contributing
+
+Contributions to CExtUp are welcome! Please submit a pull request or create an issue on the [CExtUp GitHub repository](https://github.com/trvswgnr/cextup).
+
+## License
+
+CExtUp is licensed under the MIT License. See the `LICENSE` file for more information.
