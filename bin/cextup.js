@@ -13,20 +13,37 @@ import fs from "fs";
 import path from "path";
 import readline from "readline";
 
-// get the name of the extension
+const cextupRoot = path.join(path.dirname(getScriptPath()), "..");
+
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
 });
 
-const cextRoot = path.join(path.dirname(getScriptPath()), "..");
+main();
 
-rl.question("Extension name: ", cb);
+async function main() {
+    const name = await askInputQuestion("What is the name of your project?", "my-ext");
+    const usePrettier = await askYesNoQuestion("Do you want to use prettier?", true);
+    const useVercel = await askYesNoQuestion(
+        "Do you want to use Vercel serverless edge functions?",
+        true,
+    );
+    let useServer = true;
+    if (!useVercel) {
+        useServer = await askYesNoQuestion("Do you want to use a local server?", true);
+    }
+    scaffold(name, usePrettier, useVercel, useServer);
+    rl.close();
+}
 
 /**
  * @param {string} name
+ * @param {boolean} usePrettier
+ * @param {boolean} useVercel
+ * @param {boolean} useServer
  */
-function cb(name) {
+function scaffold(name, usePrettier, useVercel, useServer) {
     // create the extension directory, if it doesn't exist
     if (fs.existsSync(name)) {
         console.error("Directory already exists");
@@ -38,14 +55,23 @@ function cb(name) {
     copyFiles("src", name);
     copyFiles("types", name);
     copyFiles("scripts", name);
-    copyFiles("api", name);
+    if (usePrettier) {
+        copyFile(".prettierrc", name);
+    }
+
+    if (useServer) {
+        copyFiles("api", name);
+    }
+
+    if (useVercel) {
+        copyFile("vercel.json", name);
+    }
 
     copyFile("LICENSE", name);
     copyFile("index.html", name);
     copyFile(".gitignore", name);
     copyFile(".env-example", name);
     copyFile("tsconfig.json", name);
-    copyFile("vercel.json", name);
 
     createReadme(name);
 
@@ -79,7 +105,7 @@ function getScriptPath() {
  * @param {string} name
  */
 function copyFiles(_src, name) {
-    const src = path.join(cextRoot, _src);
+    const src = path.join(cextupRoot, _src);
     const dest = path.join(name, _src);
     fs.readdir(src, (err, files) => {
         if (err) {
@@ -102,7 +128,7 @@ function copyFiles(_src, name) {
  * @param {string} name
  */
 function copyFile(_src, name) {
-    const src = path.join(cextRoot, _src);
+    const src = path.join(cextupRoot, _src);
     const dest = path.join(name, _src);
     fs.copyFileSync(src, dest);
 }
@@ -111,7 +137,7 @@ function copyFile(_src, name) {
  * @param {string} name
  */
 function createPackageJson(name) {
-    const packageJson = JSON.parse(fs.readFileSync(path.join(cextRoot, "package.json"), "utf8"));
+    const packageJson = JSON.parse(fs.readFileSync(path.join(cextupRoot, "package.json"), "utf8"));
     packageJson.name = name;
     packageJson.description = undefined;
     packageJson.version = "0.0.1";
@@ -161,4 +187,29 @@ You will need to reload the extension after making changes to the code by clicki
 `;
 
     fs.writeFileSync(path.join(name, "README.md"), readme, "utf8");
+}
+
+/**
+ * @param {string} query
+ * @param {string} [defaultValue]
+ */
+function askInputQuestion(query, defaultValue) {
+    return new Promise((resolve) => {
+        rl.question(`${query}${defaultValue === undefined ? "" : ` (${defaultValue})`} `, (ans) => {
+            resolve(ans || defaultValue);
+        });
+    });
+}
+
+/**
+ * @param {string} query
+ * @param {boolean} [defaultValue]
+ */
+function askYesNoQuestion(query, defaultValue) {
+    return new Promise((resolve) => {
+        const _defaultValue = defaultValue === undefined ? "y/n" : defaultValue ? "Y/n" : "y/N";
+        rl.question(`${query} (${_defaultValue}) `, (ans) => {
+            resolve(ans === "" ? defaultValue : ans.toLowerCase() === "y");
+        });
+    });
 }
