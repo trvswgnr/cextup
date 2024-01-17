@@ -1,14 +1,6 @@
 #!/usr/bin/env node
 // @ts-check
-/**!
- * @file bin/cextup.js
- *
- * this is the main file for the cextup command line tool
- *
- * it prompts the user for the name of the extension and copies the template
- */
 
-// import modules
 import fs from "fs";
 import path from "path";
 import readline from "readline";
@@ -23,69 +15,83 @@ const rl = readline.createInterface({
 main();
 
 async function main() {
-    const name = await askInputQuestion("What is the name of your project?", "my-ext");
-    const usePrettier = await askYesNoQuestion("Do you want to use prettier?", true);
-    const useVercel = await askYesNoQuestion(
-        "Do you want to use Vercel serverless edge functions?",
-        true,
-    );
-    let useServer = true;
-    if (!useVercel) {
-        useServer = await askYesNoQuestion("Do you want to use a local server?", true);
+    /** @type {string|undefined} */
+    let handle;
+    try {
+        const name = await askInputQuestion("What is the name of your project?", "My Extension");
+        handle = handleize(name);
+        const usePrettier = await askYesNoQuestion("Do you want to use prettier?", true);
+        const useVercel = await askYesNoQuestion(
+            "Do you want to use Vercel serverless edge functions?",
+            true,
+        );
+        let useServer = true;
+        if (!useVercel) {
+            useServer = await askYesNoQuestion("Do you want to use a local server?", true);
+        }
+        scaffold(name, handle, usePrettier, useVercel, useServer);
+
+        rl.close();
+
+        console.log(`Created extension at ${path.join(process.cwd(), handle)}`);
+        console.log(`Next steps:\ncd ${handle}\nbun i\nbun start`);
+    } catch (err) {
+        const error = err instanceof Error ? err : new Error("Unknown error");
+        console.error(error.message);
+        // remove the new directory if it was created
+        if (handle && fs.existsSync(handle)) {
+            console.log(`Removing ${handle}`);
+            fs.rmSync(handle, { recursive: true, force: true });
+        }
+        process.exit(1);
     }
-    scaffold(name, usePrettier, useVercel, useServer);
-    rl.close();
 }
 
 /**
  * @param {string} name
+ * @param {string} handle
  * @param {boolean} usePrettier
  * @param {boolean} useVercel
  * @param {boolean} useServer
  */
-function scaffold(name, usePrettier, useVercel, useServer) {
+function scaffold(name, handle, usePrettier, useVercel, useServer) {
     // create the extension directory, if it doesn't exist
-    if (fs.existsSync(name)) {
-        console.error("Directory already exists");
+    if (fs.existsSync(handle)) {
+        console.error(`Error: Directory ${handle} already exists`);
         process.exit(1);
     }
-    fs.mkdirSync(name);
 
-    // copy the template
-    copyFiles("src", name);
-    copyFiles("types", name);
-    copyFiles("scripts", name);
+    fs.mkdirSync(handle);
+
+    copyDir("src", handle, (err, files) => {
+        const newManifestPath = path.join(handle, "src", "manifest.ts");
+        const manifest = fs.readFileSync(newManifestPath, "utf8");
+        fs.writeFileSync(newManifestPath, manifest.replace("{{ name }}", name), "utf8");
+    });
+
+    copyDir("types", handle);
+    copyDir("scripts", handle);
     if (usePrettier) {
-        copyFile(".prettierrc", name);
+        copyFile(".prettierrc", handle);
     }
 
     if (useServer) {
-        copyFiles("api", name);
+        copyDir("api", handle);
     }
 
     if (useVercel) {
-        copyFile("vercel.json", name);
+        copyFile("vercel.json", handle);
     }
 
-    copyFile("LICENSE", name);
-    copyFile("index.html", name);
-    copyFile(".gitignore", name);
-    copyFile(".env-example", name);
-    copyFile("tsconfig.json", name);
+    copyFile("LICENSE", handle);
+    copyFile("index.html", handle);
+    copyFile(".gitignore", handle);
+    copyFile(".env-example", handle);
+    copyFile("tsconfig.json", handle);
 
-    createReadme(name);
+    createReadme(name, handle);
 
-    createPackageJson(name);
-
-    // close the readline interface
-    rl.close();
-
-    console.log(`Created extension at ${path.join(process.cwd(), name)}`);
-    console.log(`Next steps:
-cd ${name}
-bun i
-bun start
-`);
+    createPackageJson(handle);
 }
 
 function getScriptPath() {
@@ -101,16 +107,17 @@ function getScriptPath() {
 }
 
 /**
- * @param {string} _src
+ * @param {string} srcDirName
  * @param {string} name
+ * @param {(err: NodeJS.ErrnoException|null, files: string[]) => void} [cb]
  */
-function copyFiles(_src, name) {
-    const src = path.join(cextupRoot, _src);
-    const dest = path.join(name, _src);
+function copyDir(srcDirName, name, cb) {
+    const src = path.join(cextupRoot, srcDirName);
+    const dest = path.join(name, srcDirName);
     fs.readdir(src, (err, files) => {
         if (err) {
-            console.error(err);
-            process.exit(1);
+            cb?.(err, []);
+            return;
         }
         files.forEach((file) => {
             const f = path.join(dest, file);
@@ -120,6 +127,8 @@ function copyFiles(_src, name) {
             }
             fs.copyFileSync(path.join(src, file), f);
         });
+
+        cb?.(null, files);
     });
 }
 
@@ -130,6 +139,10 @@ function copyFiles(_src, name) {
 function copyFile(_src, name) {
     const src = path.join(cextupRoot, _src);
     const dest = path.join(name, _src);
+    const destDir = path.dirname(dest);
+    if (!fs.existsSync(destDir)) {
+        fs.mkdirSync(destDir, { recursive: true });
+    }
     fs.copyFileSync(src, dest);
 }
 
@@ -152,8 +165,9 @@ function createPackageJson(name) {
 
 /**
  * @param {string} name
+ * @param {string} handle
  */
-function createReadme(name) {
+function createReadme(name, handle) {
     const readme = `# ${name}
 
 This project was generated with [cextup](https://github.com/trvswgnr/cextup).
@@ -186,7 +200,7 @@ Note that Developer Mode must be enabled in order to load unpacked extensions.
 You will need to reload the extension after making changes to the code by clicking the "Update" button in \`chrome://extensions\`.
 `;
 
-    fs.writeFileSync(path.join(name, "README.md"), readme, "utf8");
+    fs.writeFileSync(path.join(handle, "README.md"), readme, "utf8");
 }
 
 /**
@@ -212,4 +226,18 @@ function askYesNoQuestion(query, defaultValue) {
             resolve(ans === "" ? defaultValue : ans.toLowerCase() === "y");
         });
     });
+}
+
+/**
+ * turns a string into a handle
+ * @param {string} str
+ */
+function handleize(str) {
+    const handle = str
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "");
+    if (!handle) throw new Error("Invalid handle");
+    return handle;
 }
