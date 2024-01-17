@@ -163,10 +163,7 @@ function createPackageJson(name, useServer) {
     packageJson.keywords = undefined;
     packageJson.bin = undefined;
     if (!useServer) {
-        if (!packageJson.scripts) {
-            packageJson.scripts = {};
-        }
-        packageJson.scripts.start = "bun start --no-server";
+        packageJson.scripts.start = "bun ./scripts/start.ts --no-server";
     }
     fs.writeFileSync(path.join(name, "package.json"), JSON.stringify(packageJson, null, 4), "utf8");
 }
