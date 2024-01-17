@@ -12,7 +12,6 @@
 import fs from "fs";
 import path from "path";
 import readline from "readline";
-import { exec } from "child_process";
 
 // get the name of the extension
 const rl = readline.createInterface({
@@ -20,12 +19,14 @@ const rl = readline.createInterface({
     output: process.stdout,
 });
 
-const thisScriptDir = path.dirname(getScriptPath());
+const cextRoot = path.join(path.dirname(getScriptPath()), "..");
+
+rl.question("Extension name: ", cb);
 
 /**
  * @param {string} name
  */
-const cb = (name) => {
+function cb(name) {
     // create the extension directory, if it doesn't exist
     if (fs.existsSync(name)) {
         console.error("Directory already exists");
@@ -34,29 +35,32 @@ const cb = (name) => {
     fs.mkdirSync(name);
 
     // copy the template
-    copyFiles(path.join(thisScriptDir, "src"), path.join(name, "src"));
-    copyFiles(path.join(thisScriptDir, "types"), path.join(name, "types"));
-    copyFiles(path.join(thisScriptDir, "scripts"), path.join(name, "scripts"));
-    copyFiles(path.join(thisScriptDir, "api"), path.join(name, "api"));
+    copyFiles("src", name);
+    copyFiles("types", name);
+    copyFiles("scripts", name);
+    copyFiles("api", name);
 
-    fs.copyFileSync(path.join(thisScriptDir, "LICENSE"), path.join(name, "LICENSE"));
-    // fs.copyFileSync(path.join(thisScriptDir, "README.md"), path.join(name, "README.md"));
-    fs.copyFileSync(path.join(thisScriptDir, "index.html"), path.join(name, "index.html"));
-    fs.copyFileSync(path.join(thisScriptDir, ".gitignore"), path.join(name, ".gitignore"));
-    fs.copyFileSync(path.join(thisScriptDir, ".env-example"), path.join(name, ".env-example"));
-    // fs.copyFileSync(path.join(thisScriptDir, "package.json"), path.join(name, "package.json"));
-    fs.copyFileSync(path.join(thisScriptDir, "tsconfig.json"), path.join(name, "tsconfig.json"));
-    fs.copyFileSync(path.join(thisScriptDir, "vercel.json"), path.join(name, "vercel.json"));
+    copyFile("LICENSE", name);
+    copyFile("index.html", name);
+    copyFile(".gitignore", name);
+    copyFile(".env-example", name);
+    copyFile("tsconfig.json", name);
+    copyFile("vercel.json", name);
 
-    fs.writeFileSync(path.join(name, "README.md"), `# ${name}\n\n`, "utf8");
+    createReadme(name);
 
     createPackageJson(name);
 
     // close the readline interface
     rl.close();
-};
 
-rl.question("Extension name: ", cb);
+    console.log(`Created extension at ${path.join(process.cwd(), name)}`);
+    console.log(`Next steps:
+cd ${name}
+bun i
+bun start
+`);
+}
 
 function getScriptPath() {
     try {
@@ -71,28 +75,43 @@ function getScriptPath() {
 }
 
 /**
- * @param {string} src
- * @param {string} dest
+ * @param {string} _src
+ * @param {string} name
  */
-function copyFiles(src, dest) {
+function copyFiles(_src, name) {
+    const src = path.join(cextRoot, _src);
+    const dest = path.join(name, _src);
     fs.readdir(src, (err, files) => {
         if (err) {
             console.error(err);
             process.exit(1);
         }
         files.forEach((file) => {
-            fs.copyFileSync(path.join(src, file), path.join(dest, file));
+            const f = path.join(dest, file);
+            const d = path.dirname(f);
+            if (!fs.existsSync(d)) {
+                fs.mkdirSync(d, { recursive: true });
+            }
+            fs.copyFileSync(path.join(src, file), f);
         });
     });
+}
+
+/**
+ * @param {string} _src
+ * @param {string} name
+ */
+function copyFile(_src, name) {
+    const src = path.join(cextRoot, _src);
+    const dest = path.join(name, _src);
+    fs.copyFileSync(src, dest);
 }
 
 /**
  * @param {string} name
  */
 function createPackageJson(name) {
-    const packageJson = JSON.parse(
-        fs.readFileSync(path.join(thisScriptDir, "package.json"), "utf8"),
-    );
+    const packageJson = JSON.parse(fs.readFileSync(path.join(cextRoot, "package.json"), "utf8"));
     packageJson.name = name;
     packageJson.description = undefined;
     packageJson.version = "0.0.1";
@@ -101,5 +120,45 @@ function createPackageJson(name) {
     packageJson.homepage = undefined;
     packageJson.bugs = undefined;
     packageJson.keywords = undefined;
+    packageJson.bin = undefined;
     fs.writeFileSync(path.join(name, "package.json"), JSON.stringify(packageJson, null, 4), "utf8");
+}
+
+/**
+ * @param {string} name
+ */
+function createReadme(name) {
+    const readme = `# ${name}
+
+This project was generated with [cextup](https://github.com/trvswgnr/cextup).
+
+## Development
+make sure you have \`bun\` installed globally.
+
+\`\`\`sh
+curl -fsSL https://bun.sh/install | bash
+\`\`\`
+
+\`\`\`sh
+# install dev dependencies
+bun i
+
+# start the dev server and watch for changes
+bun start
+\`\`\`
+
+\`\`\`sh
+# build the extension without starting the dev server
+bun ./scripts/build.ts
+\`\`\`
+
+
+To load the extension in chrome, go to \`chrome://extensions\` and click \`Load unpacked\`. Select the \`dist\` directory in this project.
+
+Note that Developer Mode must be enabled in order to load unpacked extensions.
+
+You will need to reload the extension after making changes to the code by clicking the "Update" button in \`chrome://extensions\`.
+`;
+
+    fs.writeFileSync(path.join(name, "README.md"), readme, "utf8");
 }
