@@ -1,6 +1,6 @@
 # CExtUp
 
-Chrome extension development can be painful. CExtUp is a CLI tool that aims to alleviate some of that pain, without doing too much. It provides a solid foundation for your projects, including a build system, a development server, and a basic project structure, but leaves the rest up to you.
+Chrome extension development can be painful. CExtUp tries to alleviate some of that pain, without doing too much. It provides a way to quickly scaffold and develop an extension. CExtUp gives you a solid foundation for your projects, including a build system, a development server, and a basic structure, but leaves the rest up to you.
 
 CExtUp uses [Bun](https://bun.sh/)—a modern JavaScript runtime, bundler, and package manager—instead of Node.js for its build system and server. It is also pre-configured to use [Vercel Serverless Edge Functions](https://vercel.com/docs/functions/edge-functions), but should work with other serverless platforms as well.
 
