@@ -71,7 +71,7 @@ After making changes to your code, you will need to reload the extension by clic
 
 ## Contributing
 
-Contributions to CExtUp are welcome! Please submit a pull request or create an issue on the [CExtUp GitHub repository](https://github.com/trvswgnr/cextup).
+Contributions to CExtUp are welcome! Please [create an issue](https://github.com/trvswgnr/cextup/issues) or [submit a pull request](https://github.com/trvswgnr/cextup/pulls).
 
 ## License
 
