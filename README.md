@@ -1,6 +1,6 @@
 # CExtUp
 
-Chrome extension development can be painful. CExtUp is a CLI tool that aims to alleviate some of that pain, without doing too much. It provides a solid foundation for your projects, including a build system, a development server, and a basic project structure.
+Chrome extension development can be painful. CExtUp is a CLI tool that aims to alleviate some of that pain, without doing too much. It provides a solid foundation for your projects, including a build system, a development server, and a basic project structure, but leaves the rest up to you.
 
 CExtUp uses [Bun](https://bun.sh/)—a modern JavaScript runtime, bundler, and package manager—instead of Node.js for its build system and server. It is also pre-configured to use [Vercel Serverless Edge Functions](https://vercel.com/docs/functions/edge-functions), but should work with other serverless platforms as well.
 
@@ -25,14 +25,14 @@ This will prompt you for the name of your new extension and create a new directo
 
 ## Project Structure
 
-The generated project includes the following files and directories:
+The generated project includes the following directories:
 
--   `src/`: This directory contains the source files for your Chrome extension, including background scripts, content scripts, and the manifest file.
--   `types/`: This directory contains TypeScript type definitions.
--   `api/`: This directory contains the serverless functions for your extension. This is optional and can be removed if you're not planning to use Vercel Serverless Edge Functions.
--   `scripts/`: This directory contains scripts for building and serving your extension during development.
--   `package.json`: This file contains the metadata for your project, including dependencies and scripts.
--   `tsconfig.json`: This file configures the TypeScript compiler for your project.
+-   `src/`: source files for your Chrome extension, including background scripts, content scripts, and the manifest file
+-   `types/`: TypeScript type definitions
+-   `api/`: serverless functions for your extension (if applicable)
+-   `scripts/`: scripts for building and serving your extension during development
+
+When you run `bun start`, the `extension/` directory will be created, containing the built extension. This directory is ignored by Git.
 
 ## Development
 
