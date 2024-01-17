@@ -1,3 +1,1 @@
-(async () => {
-    console.log("content script running");
-})();
+console.log("content script running");

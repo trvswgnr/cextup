@@ -12,9 +12,10 @@
         "allowImportingTsExtensions": true,
         "verbatimModuleSyntax": true,
         "noEmit": true,
-
+        
         /* Linting */
         "skipLibCheck": false,
+        "noUncheckedIndexedAccess": true,
         "strict": true,
         "noFallthroughCasesInSwitch": true,
         "forceConsistentCasingInFileNames": true,

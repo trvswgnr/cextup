@@ -39,3 +39,13 @@ function getColorFn(index?: number) {
     const color = colors[Math.floor(Math.random() * colors.length)];
     return (str: string) => color + str + "\x1b[0m";
 }
+
+export function withCors(headers?: Bun.HeadersInit) {
+    return Object.assign(headers ?? {}, {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Allow-Methods": "OPTIONS, GET, PATCH, DELETE, POST, PUT",
+        "Access-Control-Allow-Headers":
+            "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version",
+    });
+}
