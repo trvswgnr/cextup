@@ -2,7 +2,7 @@ import pkg from "../package.json";
 
 const manifest: ManifestV3 = {
     manifest_version: 3,
-    name: "A Pretty Cool Chrome Extension",
+    name: "{{ name }}",
     version: semverToChrome(pkg.version),
     version_name: pkg.version,
     background: {
@@ -11,7 +11,7 @@ const manifest: ManifestV3 = {
     permissions: ["identity", "storage"],
     content_scripts: [
         {
-            matches: ["https://example.com/*"],
+            matches: ["<all_urls>"],
             js: ["content.js"],
         },
     ],

@@ -43,9 +43,6 @@ async function fileRouter(request: Request) {
         const headers = withCors(
             Object.assign(Object.fromEntries(res.headers.entries()), matchingHeaders),
         );
-        for (const [key, value] of Object.entries(headers)) {
-            console.log(`${key}: ${value}`);
-        }
         return new Response(res.body, { status: res.status, headers });
     }
     const handlerResponse = await handler(request);
@@ -62,12 +59,14 @@ console.log(`server running at ${server.url}`);
 /** get the headers for a given url's pathname by matching the pathname against the vercel.json headers */
 async function getHeaders(pathname: string): Promise<Bun.HeadersInit> {
     const pathToFile = path.join(__dirname, "../vercel.json");
-    const vercelConfig: Record<string, unknown> = await import(pathToFile).then((m) => m.default);
+    const vercelConfig: Record<string, unknown> = await import(pathToFile)
+        .then((m) => m.default)
+        .catch(() => null);
     const headers: Bun.HeadersInit = {};
-    let regex: RegExp;
-    if (!Array.isArray(vercelConfig.headers)) {
+    if (!vercelConfig || !Array.isArray(vercelConfig.headers)) {
         return headers;
     }
+    let regex: RegExp;
     for (const entry of vercelConfig.headers) {
         regex = new RegExp(entry.source);
         if (regex.test(pathname)) {
