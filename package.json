@@ -3,8 +3,22 @@
     "version": "0.0.1",
     "description": "A tool to make Chrome extension development less painful",
     "author": "Travis Aaron Wagner <dev@techsavvytravvy.com> (https://techsavvytravvy.com)",
+    "type": "module",
     "license": "MIT",
     "bin": "./bin/cextup.js",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/trvswgnr/cextup.git"
+    },
+    "scripts": {
+        "start": "bun ./scripts/start.ts"
+    },
+    "devDependencies": {
+        "@types/bun": "^1.0.1",
+        "@types/chrome": "^0.0.256",
+        "@types/web": "^0.0.135",
+        "typescript": "^5.3.3"
+    },
     "keywords": [
         "chrome",
         "extension",
@@ -12,21 +26,5 @@
         "bun",
         "tools",
         "devtools"
-    ],
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/trvswgnr/cextup.git"
-    },
-    "type": "module",
-    "scripts": {
-        "start": "bun ./scripts/start.ts"
-    },
-    "devDependencies": {
-        "@types/bun": "^1.0.1",
-        "@types/chrome": "^0.0.256",
-        "@types/web": "^0.0.135"
-    },
-    "peerDependencies": {
-        "typescript": "^5.0.0"
-    }
+    ]
 }
