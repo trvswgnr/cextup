@@ -92,7 +92,7 @@ function scaffold(name, handle, usePrettier, useVercel, useServer) {
 
     createReadme(name, handle);
 
-    createPackageJson(handle);
+    createPackageJson(handle, useServer);
 }
 
 function getScriptPath() {
@@ -149,8 +149,9 @@ function copyFile(_src, name) {
 
 /**
  * @param {string} name
+ * @param {boolean} useServer
  */
-function createPackageJson(name) {
+function createPackageJson(name, useServer) {
     const packageJson = JSON.parse(fs.readFileSync(path.join(cextupRoot, "package.json"), "utf8"));
     packageJson.name = name;
     packageJson.description = undefined;
@@ -161,6 +162,12 @@ function createPackageJson(name) {
     packageJson.bugs = undefined;
     packageJson.keywords = undefined;
     packageJson.bin = undefined;
+    if (!useServer) {
+        if (!packageJson.scripts) {
+            packageJson.scripts = {};
+        }
+        packageJson.scripts.start = "bun start --no-server";
+    }
     fs.writeFileSync(path.join(name, "package.json"), JSON.stringify(packageJson, null, 4), "utf8");
 }
 
