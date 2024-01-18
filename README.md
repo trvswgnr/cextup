@@ -1,4 +1,4 @@
-<img src="./gh-banner.jpg" width="100%" alt="CExtUp Banner" >
+![CExtUp Banner](./gh-banner.jpg)
 
 Chrome extension development can be painful. CExtUp tries to alleviate some of that pain, without doing too much. It provides a way to quickly scaffold and develop an extension. CExtUp gives you a solid foundation for your projects, including a build system, a development server, and a basic structure, but leaves the rest up to you.
 
