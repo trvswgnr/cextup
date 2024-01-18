@@ -65,7 +65,7 @@ Note that while it is possible to use `vercel dev` to run the development server
 
 ## Loading the Extension in Chrome
 
-To load your extension in Chrome, navigate to `chrome://extensions` in your browser and click `Load unpacked`. Select the `dist` directory in your project. Note that you must have Developer Mode enabled in order to load unpacked extensions.
+To load your extension in Chrome, navigate to `chrome://extensions` in your browser and click `Load unpacked`. Select the `extension` directory in your project. Note that you must have Developer Mode enabled in order to load unpacked extensions.
 
 After making changes to your code, you will need to reload the extension by clicking the `Update` button in `chrome://extensions`.
 
@@ -75,4 +75,4 @@ Contributions to CExtUp are welcome! Please [create an issue](https://github.com
 
 ## License
 
-CExtUp is licensed under the MIT License. See the `LICENSE` file for more information.
+CExtUp is licensed under the MIT License. See the [`LICENSE` file](LICENSE) for more information.
