@@ -12,11 +12,34 @@ const rl = readline.createInterface({
     output: process.stdout,
 });
 
+const showHelp = process.argv.includes("--help") || process.argv.includes("-h");
+const showVersion = process.argv.includes("--version") || process.argv.includes("-v");
 const useDefaults = process.argv.includes("--yes") || process.argv.includes("-y");
 
 main();
 
 async function main() {
+    const packageJson = JSON.parse(await fs.readFile(path.join(cextupRoot, "package.json"), "utf8"));
+
+    if (showVersion) {
+        console.log(`v${packageJson.version}`);
+        return;
+    }
+
+    if (showHelp) {
+        console.log(`
+cextup v${packageJson.version}
+
+A tool to make Chrome extension development less painful.
+
+Usage: cextup [options]
+
+Options:
+--yes, -y: Use default values for all questions
+--help, -h: Show this help message
+`);
+        return;
+    }
     /** @type {string|undefined} */
     let handle;
     try {
