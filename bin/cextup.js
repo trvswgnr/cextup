@@ -84,7 +84,7 @@ async function scaffold(name, handle, usePrettier, useVercel, useServer) {
     }
     promises.push(copyFile("LICENSE", handle));
     promises.push(copyFile("index.html", handle));
-    promises.push(copyFile(".gitignore", handle));
+    promises.push(copyFile("gitignore-template", handle, ".gitignore"));
     promises.push(copyFile("tsconfig.json", handle));
     promises.push(createReadme(name, handle));
     promises.push(createPackageJson(handle, useServer));
@@ -126,11 +126,12 @@ async function copyDir(srcDirName, name) {
 
 /**
  * @param {string} _src
- * @param {string} name
+ * @param {string} folder
+ * @param {string} [renamed]
  */
-async function copyFile(_src, name) {
+async function copyFile(_src, folder, renamed) {
     const src = path.join(cextupRoot, _src);
-    const dest = path.join(name, _src);
+    const dest = path.join(folder, renamed ?? _src);
     const destDir = path.dirname(dest);
     await fs.mkdir(destDir, { recursive: true });
     await fs.copyFile(src, dest);
