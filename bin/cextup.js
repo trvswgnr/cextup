@@ -41,6 +41,7 @@ If calling from package manager: ${runtime}x cextup [options]
 Options:
 --yes, -y: Use default values for all questions
 --help, -h: Show this help message
+--version, -v: Show version
 `);
         process.exit(0);
     }
