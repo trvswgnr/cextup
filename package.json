@@ -16,7 +16,7 @@
         "api/",
         "scripts/",
         "types/",
-        ".gitignore",
+        "gitignore-template",
         ".prettierrc",
         ".env-example",
         "index.html",
