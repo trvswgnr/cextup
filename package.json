@@ -1,6 +1,6 @@
 {
     "name": "cextup",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "A tool to make Chrome extension development less painful",
     "author": "Travis Aaron Wagner <dev@techsavvytravvy.com> (https://techsavvytravvy.com)",
     "type": "module",
@@ -10,6 +10,20 @@
         "type": "git",
         "url": "https://github.com/trvswgnr/cextup.git"
     },
+    "files": [
+        "bin/",
+        "src/",
+        "api/",
+        "scripts/",
+        "types/",
+        ".gitignore",
+        ".prettierrc",
+        ".env-example",
+        "index.html",
+        "tsconfig.json",
+        "LICENSE",
+        "vercel.json"
+    ],
     "scripts": {
         "start": "bun ./scripts/start.ts"
     },
