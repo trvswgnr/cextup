@@ -51,7 +51,7 @@ Options:
         if (useDefaults) {
             await scaffold("My Extension", "my-extension", true, true, true);
             console.log(`Created extension at ${path.join(process.cwd(), "my-extension")}`);
-            console.log(`Next steps:\ncd my-extension\n${runtime} i\n${runtime} start`);
+            console.log(`Next steps:\ncd my-extension\nbun i\nbun start`);
             process.exit(0);
         }
         const name = await askInputQuestion("What is the name of your project?", "My Extension");
@@ -70,7 +70,7 @@ Options:
         rl.close();
 
         console.log(`Created extension at ${path.join(process.cwd(), handle)}`);
-        console.log(`Next steps:\ncd ${handle}\n${runtime} i\n${runtime} start`);
+        console.log(`Next steps:\ncd ${handle}\nbun i\nbun start`);
     } catch (err) {
         const error = err instanceof Error ? err : new Error("Unknown error");
         console.error(error.message);

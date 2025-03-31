@@ -1,6 +1,6 @@
 {
     "name": "cextup",
-    "version": "0.0.7",
+    "version": "0.0.8",
     "description": "A tool to make Chrome extension development less painful",
     "author": "Travis Aaron Wagner <dev@techsavvytravvy.com> (https://techsavvytravvy.com)",
     "type": "module",
