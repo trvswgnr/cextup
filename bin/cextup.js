@@ -19,11 +19,13 @@ const useDefaults = process.argv.includes("--yes") || process.argv.includes("-y"
 main();
 
 async function main() {
+    const runtime = typeof Bun === "undefined" ? "npm" : "bun";
+
     const packageJson = JSON.parse(await fs.readFile(path.join(cextupRoot, "package.json"), "utf8"));
 
     if (showVersion) {
         console.log(`v${packageJson.version}`);
-        return;
+        process.exit(0);
     }
 
     if (showHelp) {
@@ -34,18 +36,22 @@ A tool to make Chrome extension development less painful.
 
 Usage: cextup [options]
 
+If calling from package manager: ${runtime}x cextup [options]
+
 Options:
 --yes, -y: Use default values for all questions
 --help, -h: Show this help message
 `);
-        return;
+        process.exit(0);
     }
     /** @type {string|undefined} */
     let handle;
     try {
         if (useDefaults) {
             await scaffold("My Extension", "my-extension", true, true, true);
-            return;
+            console.log(`Created extension at ${path.join(process.cwd(), "my-extension")}`);
+            console.log(`Next steps:\ncd my-extension\n${runtime} i\n${runtime} start`);
+            process.exit(0);
         }
         const name = await askInputQuestion("What is the name of your project?", "My Extension");
         handle = handleize(name);
@@ -63,7 +69,7 @@ Options:
         rl.close();
 
         console.log(`Created extension at ${path.join(process.cwd(), handle)}`);
-        console.log(`Next steps:\ncd ${handle}\nbun i\nbun start`);
+        console.log(`Next steps:\ncd ${handle}\n${runtime} i\n${runtime} start`);
     } catch (err) {
         const error = err instanceof Error ? err : new Error("Unknown error");
         console.error(error.message);
